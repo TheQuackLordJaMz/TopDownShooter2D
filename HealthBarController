@@ -1,0 +1,19 @@
+using UnityEngine;
+
+public class HealthBarController : MonoBehaviour
+{
+    public Transform fill; // The colored fill part of the health bar
+
+    // Updates the health bar fill based on the percentage of remaining health
+    public void SetHealth(float healthPercent)
+    {
+        // Ensure the value stays between 0 and 1
+        healthPercent = Mathf.Clamp01(healthPercent);
+
+        // Scale the fill horizontally to match health percentage
+        fill.localScale = new Vector3(healthPercent, 1f, 1f);
+
+        // Adjust position so it "shrinks" from left to right
+        fill.localPosition = new Vector3((healthPercent - 1f) * 0.5f, 0f, 0f);
+    }
+}
