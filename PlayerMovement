@@ -1,0 +1,66 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+public class PlayerMovement : MonoBehaviour
+{
+    
+    [SerializeField] private float _speed;                           //This is the player's movement speed
+    [SerializeField] private float _rotationSpeed;                    //speed we rotate the sprite
+    [SerializeField] private Rigidbody2D _rigidbody;                 //Used to apply physics-based movement.
+
+    private Vector2 _movementInput;                 //raw input from player (WASD or stick).
+    private Vector2 _smoothedMovementInput;         //makes movement feel gradual(smoother)
+    private Vector2 _movementInputSmoothVelocity;   //needed for smoothing math(no idea i copied it does something fancy use it or dont makes no differnce)
+
+    private void Awake()
+    {
+        _rigidbody = GetComponent<Rigidbody2D>();
+    }
+
+    private void FixedUpdate() //Apply smooth movement
+    {
+        SetPlayerVelocity(); //calls the setVelocity Function
+        RotateInDirectionOfInput();
+    }
+
+    void SetPlayerVelocity() 
+    {
+        //Smoothly transitions from current direction to target direction over 0.1 seconds.
+        //Prevents instant stops/starts.
+        _smoothedMovementInput = Vector2.SmoothDamp(
+            _smoothedMovementInput,
+            _movementInput,
+            ref _movementInputSmoothVelocity,
+            0.1f);
+
+        _rigidbody.linearVelocity = _smoothedMovementInput * _speed;         //Applies the smoothed movement to the Rigidbody2D.
+    }
+
+
+    void RotateInDirectionOfInput()
+    {
+        if (_smoothedMovementInput != Vector2.zero)
+        {
+            // Get angle from input direction
+            float angle = Mathf.Atan2(_smoothedMovementInput.y, _smoothedMovementInput.x) * Mathf.Rad2Deg;
+
+            // OPTIONAL: Offset this angle depending on how your sprite is drawn (e.g., if it faces up by default)
+            float spriteFacingOffset = -90f; // Try 0f, -90f, or 90f depending on your sprite
+            angle += spriteFacingOffset;
+
+            // Create rotation
+            Quaternion targetRotation = Quaternion.Euler(0f, 0f, angle);
+
+            // Smoothly rotate
+            transform.rotation = Quaternion.RotateTowards(
+                transform.rotation,
+                targetRotation,
+                _rotationSpeed * Time.deltaTime);
+        }
+    }
+
+    private void OnMove(InputValue inputValue) //Gets called when the player moves
+    {
+        _movementInput = inputValue.Get<Vector2>();
+    }
+}
