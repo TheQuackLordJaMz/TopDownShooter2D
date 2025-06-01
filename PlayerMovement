@@ -1,66 +1,36 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    
-    [SerializeField] private float _speed;                           //This is the player's movement speed
-    [SerializeField] private float _rotationSpeed;                    //speed we rotate the sprite
-    [SerializeField] private Rigidbody2D _rigidbody;                 //Used to apply physics-based movement.
+    public float moveSpeed = 5f;        // Speed at which the player moves
+    public Rigidbody2D rb;              // Rigidbody2D component for movement
+    public Camera cam;                  // Reference to the main camera (used for aiming)
 
-    private Vector2 _movementInput;                 //raw input from player (WASD or stick).
-    private Vector2 _smoothedMovementInput;         //makes movement feel gradual(smoother)
-    private Vector2 _movementInputSmoothVelocity;   //needed for smoothing math(no idea i copied it does something fancy use it or dont makes no differnce)
+    Vector2 movement;                   // Stores movement input
+    Vector2 mousePos;                   // Stores mouse position in world space
 
-    private void Awake()
+    void Update()
     {
-        _rigidbody = GetComponent<Rigidbody2D>();
+        // Get WASD or Arrow Key input
+        movement.x = Input.GetAxisRaw("Horizontal");
+        movement.y = Input.GetAxisRaw("Vertical");
+
+        // Convert mouse position from screen space to world space
+        mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
     }
 
-    private void FixedUpdate() //Apply smooth movement
+    void FixedUpdate()
     {
-        SetPlayerVelocity(); //calls the setVelocity Function
-        RotateInDirectionOfInput();
-    }
+        // Apply movement (normalized to prevent faster diagonal movement)
+        rb.MovePosition(rb.position + movement.normalized * moveSpeed * Time.fixedDeltaTime);
 
-    void SetPlayerVelocity() 
-    {
-        //Smoothly transitions from current direction to target direction over 0.1 seconds.
-        //Prevents instant stops/starts.
-        _smoothedMovementInput = Vector2.SmoothDamp(
-            _smoothedMovementInput,
-            _movementInput,
-            ref _movementInputSmoothVelocity,
-            0.1f);
+        // Calculate direction from player to mouse
+        Vector2 lookDir = mousePos - rb.position;
 
-        _rigidbody.linearVelocity = _smoothedMovementInput * _speed;         //Applies the smoothed movement to the Rigidbody2D.
-    }
+        // Convert to rotation angle in degrees (2D rotation offset by -90 degrees to face up)
+        float angle = Mathf.Atan2(lookDir.y, lookDir.x) * Mathf.Rad2Deg - 90f;
 
-
-    void RotateInDirectionOfInput()
-    {
-        if (_smoothedMovementInput != Vector2.zero)
-        {
-            // Get angle from input direction
-            float angle = Mathf.Atan2(_smoothedMovementInput.y, _smoothedMovementInput.x) * Mathf.Rad2Deg;
-
-            // OPTIONAL: Offset this angle depending on how your sprite is drawn (e.g., if it faces up by default)
-            float spriteFacingOffset = -90f; // Try 0f, -90f, or 90f depending on your sprite
-            angle += spriteFacingOffset;
-
-            // Create rotation
-            Quaternion targetRotation = Quaternion.Euler(0f, 0f, angle);
-
-            // Smoothly rotate
-            transform.rotation = Quaternion.RotateTowards(
-                transform.rotation,
-                targetRotation,
-                _rotationSpeed * Time.deltaTime);
-        }
-    }
-
-    private void OnMove(InputValue inputValue) //Gets called when the player moves
-    {
-        _movementInput = inputValue.Get<Vector2>();
+        // Rotate the player to face the mouse
+        rb.rotation = angle;
     }
 }
