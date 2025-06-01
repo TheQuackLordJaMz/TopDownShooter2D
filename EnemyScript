@@ -1,0 +1,76 @@
+using UnityEngine;
+using System.Collections;
+
+public class Enemy : MonoBehaviour
+{
+    [Header("Stats")]
+    public float maxHealth = 3f;   // Total health the enemy starts with
+    public float speed = 3f;       // Movement speed toward the player
+
+    private float currentHealth;   // Current health of the enemy
+    private Transform player;      // Reference to the player’s transform
+    private HealthBarController healthBar;  // Reference to the attached health bar script
+    private SpriteRenderer spriteRenderer;  // Enemy's sprite for flashing effect
+    private Color originalColor;            // To store the default sprite color
+
+    void Start()
+    {
+        // Initialize health and references
+        currentHealth = maxHealth;
+        healthBar = GetComponentInChildren<HealthBarController>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        originalColor = spriteRenderer.color;
+
+        // Find the player in the scene using the "Player" tag
+        player = GameObject.FindGameObjectWithTag("Player")?.transform;
+
+        // Update health bar UI to show full health
+        UpdateHealthBar();
+    }
+
+    void Update()
+    {
+        // Continuously move toward the player if they exist
+        if (player != null)
+            MoveTowardPlayer();
+    }
+
+    // Moves the enemy toward the player's position
+    void MoveTowardPlayer()
+    {
+        Vector2 direction = (player.position - transform.position).normalized;
+        transform.position += (Vector3)(direction * speed * Time.deltaTime);
+    }
+
+    // Called when the enemy takes damage
+    public void TakeDamage(int damage)
+    {
+        currentHealth -= damage;     // Subtract health
+        UpdateHealthBar();           // Update the health bar UI
+        StartCoroutine(FlashOnHit()); // Flash visual on damage
+
+        if (currentHealth <= 0)
+            Die();                   // Destroy if health reaches zero
+    }
+
+    // Updates the enemy's health bar
+    void UpdateHealthBar()
+    {
+        if (healthBar != null)
+            healthBar.SetHealth(currentHealth / maxHealth);
+    }
+
+    // Briefly flashes the sprite white when hit
+    IEnumerator FlashOnHit()
+    {
+        spriteRenderer.color = Color.red;
+        yield return new WaitForSeconds(0.1f);
+        spriteRenderer.color = originalColor;
+    }
+
+    // Handles enemy death logic
+    void Die()
+    {
+        Destroy(gameObject);
+    }
+}
