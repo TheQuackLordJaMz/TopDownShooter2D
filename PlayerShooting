@@ -1,0 +1,29 @@
+using UnityEngine;
+
+public class PlayerShooting : MonoBehaviour
+{
+    public Transform firePoint;           // The point where bullets are spawned
+    public GameObject bulletPrefab;       // The bullet prefab to instantiate
+    public float fireRate = 0.2f;         // Time in seconds between shots
+
+    private float fireCooldown = 0f;      // Countdown until the next shot is allowed
+
+    void Update()
+    {
+        // Reduce the cooldown timer every frame
+        fireCooldown -= Time.deltaTime;
+
+        // If the fire button is held and cooldown has expired, shoot
+        if (Input.GetButton("Fire1") && fireCooldown <= 0f)
+        {
+            Shoot();
+            fireCooldown = fireRate; // Reset cooldown
+        }
+    }
+
+    // Spawns a bullet at the fire point
+    void Shoot()
+    {
+        Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+    }
+}
