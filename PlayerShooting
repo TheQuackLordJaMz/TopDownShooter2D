@@ -1,5 +1,5 @@
 using UnityEngine;
-
+ 
 public class PlayerShooting : MonoBehaviour
 {
     public Transform firePoint;           // The point where bullets are spawned
