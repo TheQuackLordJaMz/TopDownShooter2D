@@ -1,0 +1,27 @@
+public class PlayerAwarenessController : MonoBehaviour
+{
+    public bool awareOfPlayer { get; private set; }       // True if player is close enough
+    public Vector2 directionToPlayer { get; private set; } // Normalized direction to player
+
+    [SerializeField] private float _playerAwarenessDistance = 5f; // Distance within which the enemy notices the player
+    [SerializeField] private Transform _player;                  // Reference to the player
+
+    private void Awake()
+    {
+        // Automatically find the player by their PlayerMovement component
+        _player = FindAnyObjectByType<PlayerMovement>()?.transform;
+    }
+
+    private void Update()
+    {
+        if (_player == null) return;
+
+        Vector2 toPlayer = _player.position - transform.position;
+
+        // Direction to the player (used for facing or aiming)
+        directionToPlayer = toPlayer.normalized;
+
+        // Set awareness flag based on distance to player
+        awareOfPlayer = toPlayer.magnitude <= _playerAwarenessDistance;
+    }
+}
