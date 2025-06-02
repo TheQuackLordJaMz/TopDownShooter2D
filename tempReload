@@ -1,0 +1,11 @@
+void Reload()
+{
+    currentAmmo = maxAmmo;
+    UpdateAmmoUI();
+    // Optionally, play a reload sound or animation here
+}
+  // Reload when 'R' key is pressed
+  if (Input.GetKeyDown(KeyCode.R))
+  {
+      Reload();
+  }
