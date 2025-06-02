@@ -1,0 +1,93 @@
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public class PlayerShooting : MonoBehaviour
+{
+    [Header("Shooting Settings")]
+    public Transform firePoint;           // The point where arrows are spawned
+    public GameObject arrowPrefab;        // The arrow prefab to instantiate
+  
+
+    [Header("Ammo Settings")]
+    [SerializeField] private int maxAmmo = 15;
+    private int currentAmmo;
+
+    [Header("UI Elements")]
+    [SerializeField] private TMP_Text ammoText; // Reference to the UI Text component displaying ammo
+  
+
+    [Header("Audio")]
+    [SerializeField] private AudioClip outOfAmmoClip; // Sound to play when out of ammo
+    private AudioSource audioSource;
+
+    
+
+    private void Start()
+    {
+        currentAmmo = maxAmmo;
+        UpdateAmmoUI();
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+    }
+
+    void Update()
+    {
+        // Start charging when fire button is pressed
+        if (Input.GetButtonDown("Fire1") && currentAmmo > 0)
+        {
+            FireArrow();
+        }
+
+
+        // Reload when 'R' key is pressed
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            Reload();
+        }
+    }
+
+    void FireArrow()
+    {
+        if (currentAmmo <= 0)
+        {
+            // Play out-of-ammo sound
+            if (outOfAmmoClip != null)
+            {
+                audioSource.PlayOneShot(outOfAmmoClip);
+            }
+            Debug.Log("Out of ammo!");
+            return;
+        }
+
+       
+
+        // Instantiate and launch the arrow
+        GameObject arrow = Instantiate(arrowPrefab, firePoint.position, firePoint.rotation);
+        Rigidbody2D rb = arrow.GetComponent<Rigidbody2D>();
+        
+
+        currentAmmo--;
+        UpdateAmmoUI();
+    }
+
+    void Reload()
+    {
+        currentAmmo = maxAmmo;
+        UpdateAmmoUI();
+        // Optionally, play a reload sound or animation here
+    }
+
+    void UpdateAmmoUI()
+    {
+        if (ammoText != null)
+        {
+            ammoText.text = "Ammo: " + currentAmmo + "/" + maxAmmo;
+        }
+    }
+}
